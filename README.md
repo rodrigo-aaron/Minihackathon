@@ -32,6 +32,8 @@ npm run setup
 
 `npm run setup` creates a private `SECRET` when needed and prepares the reference document. It preserves an existing `GEMINI_API_KEY`.
 
+The setup script also works in deployments where `.env.example` is not committed. On Render, configure the environment variables in the service dashboard instead of uploading a `.env` file.
+
 If necessary, edit `.env` and set:
 
 ```env

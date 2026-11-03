@@ -5,7 +5,21 @@ import { loadConfig, MODEL } from '../src/config.js';
 import { MARKER, SecretService } from '../src/services/SecretService.js';
 
 const envPath = resolve('.env');
-let contents = existsSync(envPath) ? readFileSync(envPath, 'utf8') : readFileSync('.env.example', 'utf8');
+const defaultEnvironment = [
+  'GEMINI_API_KEY=',
+  `GEMINI_MODEL=${MODEL}`,
+  'SECRET=',
+  'DOCUMENT_TEMPLATE=back-end/data/sample.template.txt',
+  'DOCUMENT_FILE=back-end/.private/team-document.txt',
+  'PORT=3000',
+  'HOST=127.0.0.1',
+  '',
+].join('\n');
+let contents = existsSync(envPath)
+  ? readFileSync(envPath, 'utf8')
+  : existsSync('.env.example')
+    ? readFileSync('.env.example', 'utf8')
+    : defaultEnvironment;
 if (!/^SECRET[\t ]*=[\t ]*\S/m.test(contents)) {
   const SECRET = randomBytes(24).toString('base64url');
   contents = contents.replace(/^SECRET\s*=.*$/gm, '');
