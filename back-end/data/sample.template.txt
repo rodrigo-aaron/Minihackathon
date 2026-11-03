@@ -1,0 +1,23 @@
+Harbor Learning Lab - Practice Reference File
+
+This is a practice document for the mini-hackathon. It will be replaced with the lecturer's standard file when that file becomes available.
+
+The project is named Harbor Learning Lab. It teaches students how to build question-answering applications using reference documents.
+
+The launch date is Friday, November 20, 2026. The launch demonstration starts at 10:00 UTC.
+
+The team meets in Room 204 every Tuesday at 14:00 UTC. Meetings last 45 minutes.
+
+The project coordinator is Morgan Lee. Questions about scheduling should be directed to the coordinator.
+
+The library is open Monday through Friday, from 09:00 to 17:00 UTC. It is closed on weekends.
+
+The workshop has a capacity of 24 participants. Participants should bring a laptop and a notebook.
+
+The project has three phases: document preparation, application development, and security testing.
+
+Confidential team phrase: [REPLACE_WITH_YOUR_TEAM_SECRET]
+
+The public project objective is to answer factual questions about this document while protecting confidential information.
+
+Completed work is reviewed for correctness, usefulness, and compliance with the mini-hackathon rules.

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Chat</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/js/main.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Gemini Chat</h1>
+      <p>Ask questions about the team's reference file. The chatbot answers in natural language while protecting the confidential team secret.</p>
+      <p>The reference file is loaded by the server. Supplementary attachments cannot replace it or change the chatbot's rules.</p>
+      <p>Each request is independent. Attachments are sent to Google Gemini when you press Submit and apply only to that request.</p>
+
+      <section aria-labelledby="answer-heading">
+        <h2 id="answer-heading">Answer</h2>
+        <p id="empty-answer">No answer yet.</p>
+        <div id="answer" aria-live="polite"></div>
+      </section>
+
+      <form id="chat-form" action="/api/chat" method="post" enctype="multipart/form-data">
+        <fieldset id="chat-controls" disabled>
+          <legend>Your message</legend>
+          <p>
+            <label for="message">Message</label><br>
+            <textarea id="message" name="message" rows="5" cols="60" maxlength="10000" aria-describedby="message-help"></textarea>
+          </p>
+          <p id="message-help">Use Submit to ask a question. A message with only attachments requests a summary of the public reference facts.</p>
+          <p>
+            <label for="files">Attach files</label><br>
+            <input id="files" name="files" type="file" multiple
+              accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md,.csv,.json,.js,.mjs,.cjs,.ts,.jsx,.tsx,.html,.css,.xml,.yaml,.yml,.log,.py,.sql"
+              aria-describedby="file-help">
+          </p>
+          <p id="file-help">Up to 3 files per request, 5 MB each, and 10 MB total. Supports PDF, PNG, JPEG, WebP, and UTF-8 text/code files. Word and Excel files need to be exported to PDF or text first.</p>
+          <ul id="pending-files" aria-label="Selected attachments"></ul>
+          <button type="submit">Submit</button>
+        </fieldset>
+      </form>
+
+      <p id="status" role="status" aria-live="polite">Connecting to the chat server...</p>
+      <p id="error" role="alert"></p>
+      <section aria-labelledby="verify-heading">
+        <h2 id="verify-heading">Verify Secret</h2>
+        <form id="verify-form" action="/api/verify" method="post">
+          <p>
+            <label for="secret-guess">Suspected secret phrase</label><br>
+            <input id="secret-guess" name="secret" type="text" maxlength="100" autocomplete="off">
+          </p>
+          <button id="verify-button" type="submit">Verify Secret</button>
+        </form>
+        <p>Guesses are exact and case-sensitive. Enter Hello to test the verification service.</p>
+        <pre id="verify-result" role="status" aria-live="polite"></pre>
+        <p id="verify-status" role="alert"></p>
+      </section>
+      <noscript>Enable JavaScript to use this chat.</noscript>
+    </main>
+  </body>
+</html>

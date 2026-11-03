@@ -1,0 +1,22 @@
+{
+  "name": "gemini-chat-foundation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A minimal, object-oriented Gemini chat application with file attachments.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "scripts": {
+    "setup": "node back-end/scripts/setup.js",
+    "document:prepare": "node back-end/scripts/setup.js",
+    "check:integrity": "node --env-file-if-exists=.env back-end/scripts/check-integrity.js",
+    "start": "node --env-file-if-exists=.env back-end/src/server.js",
+    "dev": "node --watch --env-file-if-exists=.env back-end/src/server.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "express": "^5.1.0",
+    "multer": "^2.0.0"
+  }
+}
