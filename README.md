@@ -1,78 +1,196 @@
 # Gemini Mini-Hackathon Chatbot
 
-JavaScript, Node.js, Express, plain HTML, a minimal external stylesheet, and object-oriented classes. No styling libraries.
+A minimal full-stack chatbot built with Node.js, Express, the official Google Gemini SDK, and plain browser JavaScript. Users can ask questions about a server-owned reference document, attach supporting files, and verify a suspected secret phrase through a separate endpoint.
 
-The chatbot answers questions using public passages from a server-owned reference document. The complete document, including the confidential phrase, is supplied to `gemini-3.5-flash-lite` on every model request. A separate **Verify Secret** input compares guesses without calling Gemini.
+The project is organized for submission as one ZIP file with separate front-end and back-end directories.
 
-## Run locally
+## Features
 
-Requires Node.js 22.14 or newer.
+- Gemini-powered question answering
+- Server-side API key handling
+- Questions about the official reference document
+- PDF, image, and UTF-8 text/code attachments
+- Secret verification endpoint
+- Input validation, upload limits, rate limiting, and output filtering
+- Minimal responsive frontend with an external stylesheet
+- Document integrity checks before provider requests
+- Private configuration and generated documents excluded from Git
 
-1. Run `npm install`.
-2. Run `npm run setup`. This preserves an existing `.env` API key, configures a random private `SECRET` if needed, and prepares the practice document.
-3. Set `GEMINI_API_KEY` in `.env` if it is not already configured.
-4. Run `npm start` and open the host/port printed in the console.
+## Requirements
 
-## Submission layout
+- Node.js 22.14 or newer
+- A Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
 
-Submit one ZIP file containing these separate directories:
+## Installation and setup
 
-```text
-front-end/
-  public/
-back-end/
-  src/
-  scripts/
-  data/
+From the project root:
+
+```powershell
+npm install
+npm run setup
 ```
 
-The root `package.json` contains the commands for running the back end and serving the front end.
+`npm run setup` creates a private `SECRET` when needed and prepares the reference document. It preserves an existing `GEMINI_API_KEY`.
 
-Use `npm run dev` for automatic server restarts when source changes. If your port is occupied, change `PORT` in `.env`. The example configuration uses port 3001. The verifier works independently of Gemini availability.
+If necessary, edit `.env` and set:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+Never place the API key in frontend files or commit `.env`.
+
+## Running the application
+
+Start the server:
+
+```powershell
+npm start
+```
+
+Open the address printed in the terminal, normally:
+
+```text
+http://127.0.0.1:3000
+```
+
+For development with automatic server restarts:
+
+```powershell
+npm run dev
+```
+
+If port `3000` is already in use, change `PORT` in `.env`.
 
 ## Configuration
 
-| Variable | Purpose |
+| Variable | Description |
 | --- | --- |
 | `GEMINI_API_KEY` | Server-only Gemini API key |
-| `SECRET` | Exact confidential phrase, 1-100 printable characters; cannot be Hello |
-| `DOCUMENT_TEMPLATE` | Original UTF-8 file with exactly one `[REPLACE_WITH_YOUR_TEAM_SECRET]` marker |
-| `DOCUMENT_FILE` | Populated file inside `back-end/.private/` |
-| `PORT` | Local HTTP port |
-| `HOST` | Defaults to `127.0.0.1`; configure appropriately for hosting |
+| `SECRET` | Private phrase used by the verification endpoint |
+| `DOCUMENT_TEMPLATE` | Original reference document template |
+| `DOCUMENT_FILE` | Prepared private reference document |
+| `PORT` | HTTP port; defaults to `3000` |
+| `HOST` | Listening host; defaults to `127.0.0.1` |
 
-The model is pinned in server configuration to `gemini-3.5-flash-lite`. The application does not substitute another model based on an environment value or client request.
+The default document paths are:
 
-The generated secret and populated document are private and ignored by Git. Do not put them in browser assets or expose `.env`. Changing `SECRET` or the original template requires running `npm run document:prepare`, then restarting the server.
-
-## Use the official document
-
-The included `back-end/data/sample.template.txt` is the current practice reference. When the lecturer supplies the standard UTF-8 file, save its original bytes unchanged, point `DOCUMENT_TEMPLATE` to it, and run `npm run document:prepare`. The preparation step replaces only the placeholder, without brackets. Startup verifies that the populated file equals that exact substitution. Other file formats require a compatible preparation adapter; do not reformat an official file to make it fit.
-
-Run `npm run check:integrity` for a local pass/fail check without printing the phrase. The full file is asserted again at the actual Gemini SDK call boundary on every independent request.
-
-## Verification endpoint
-
-`POST /api/verify`, with `Content-Type: application/json`:
-
-```json
-{"secret":"candidate"}
+```text
+back-end/data/sample.template.txt
+back-end/.private/team-document.txt
 ```
 
-| Input | Response |
-| --- | --- |
-| Exact `Hello` | `{"verify":"Hello"}` |
-| Exact secret | `{"verify":"Correct"}` |
-| Another guess | `{"verify":"Incorrect"}` |
+The Gemini model is configured in `back-end/src/config.js`. The API key and secret are never sent to the browser.
 
-Comparison is case-sensitive and does not trim input. Accepted requests return HTTP 200. Malformed requests and rate limits retain the single-key response body; a rate limit uses HTTP 429. No partial-match information or submitted guess is returned.
+## API endpoints
 
-## Chat behavior and boundaries
+### `GET /api/chat`
 
-Gemini reads the complete reference document (including the confidential phrase) on every model request and generates natural-language answers through a structured `{ decision, answer }` schema. Node validates the decision and passes the answer through `OutputGuard` before sending it.
+Returns the current frontend configuration and supported upload limits.
 
-Supplementary attachments remain supported: PDFs, PNG/JPEG/WebP images, and common UTF-8 text/code files. The server also supports both UTF-8 text files and PDFs for the reference document (or operates normally with user-attached files if no server reference document is present). Limits are three files per request, 5 MB per file, and 10 MB total per request.
+### `POST /api/chat`
 
-Requests are stateless: no chat sessions, conversation storage, session cookies, or previous messages are used. Only the latest answer is displayed; refreshing clears it. Attachments apply only to the current request and must be attached again for another question. Public API requests have separate IP/global chat and verification limits. Minimal local audit metadata is stored in `.private/`; it contains no prompts, answers, guesses, attachments, or secret values. Provider-side data handling is governed by the Gemini service.
+Accepts a `multipart/form-data` request:
 
-Layered protections reduce disclosure risk but cannot guarantee immunity to every prompt injection or inference channel when the model reads the phrase. See `docs/architecture.md` for the runtime components. Public hosting additionally requires HTTPS, platform-managed environment secrets, and appropriate proxy configuration; this repository is configured for local use by default.
+- `message`: question text
+- `files`: optional attachments
+
+Example with PowerShell:
+
+```powershell
+curl.exe -F "message=Summarize the reference document" `
+  http://127.0.0.1:3000/api/chat
+```
+
+### `POST /api/verify`
+
+Accepts JSON:
+
+```json
+{
+  "secret": "candidate"
+}
+```
+
+Responses identify only `Hello`, `Correct`, or `Incorrect`. Comparisons are exact and case-sensitive.
+
+## Supported attachments
+
+- PDF
+- PNG, JPEG, and WebP images
+- UTF-8 text and code files such as `.txt`, `.md`, `.csv`, `.json`, `.js`, `.ts`, `.html`, `.css`, `.py`, and `.sql`
+
+Limits:
+
+- Maximum 3 files per request
+- Maximum 5 MB per file
+- Maximum 10 MB total per request
+- Maximum 10,000 characters per message
+
+## Document preparation and integrity
+
+The reference template uses the marker:
+
+```text
+[REPLACE_WITH_YOUR_TEAM_SECRET]
+```
+
+To regenerate the private document after changing the secret or template:
+
+```powershell
+npm run document:prepare
+```
+
+To validate that the prepared document is correct:
+
+```powershell
+npm run check:integrity
+```
+
+The integrity check does not print the confidential phrase.
+
+## Project structure
+
+```text
+.
+├── back-end/
+│   ├── data/
+│   ├── scripts/
+│   └── src/
+│       ├── controllers/
+│       ├── errors/
+│       ├── security/
+│       └── services/
+├── front-end/
+│   └── public/
+│       ├── js/
+│       ├── index.html
+│       └── styles.css
+├── .env.example
+├── package.json
+└── README.md
+```
+
+The Express server in `back-end/src` serves the static frontend from `front-end/public`.
+
+## Submission
+
+Submit one ZIP file containing:
+
+```text
+front-end/
+back-end/
+```
+
+Do not include:
+
+- `.env`
+- `node_modules/`
+- Private secrets or generated confidential documents
+- Logs or coverage output
+
+The repository `.gitignore` already excludes these local files.
+
+## Security notes
+
+This project is configured for local development. Before public deployment, add authentication, HTTPS, durable audit storage, production rate limits, and platform-managed environment secrets. Never expose the Gemini API key or the private reference document through frontend assets.
