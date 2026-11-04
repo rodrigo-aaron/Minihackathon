@@ -6,8 +6,9 @@ export const limits = Object.freeze({
   requestFileBytes: 10 * 1024 * 1024,
   messageCharacters: 10_000,
   documentBytes: 128 * 1024,
-  promptBytes: 768 * 1024,
-  concurrentGenerations: 2,
+  // Base64 expands the permitted 10 MB of binary attachments by about one third.
+  promptBytes: 15 * 1024 * 1024,
+  concurrentGenerations: 15,
 });
 
 export function loadConfig(environment = process.env) {
@@ -17,14 +18,18 @@ export function loadConfig(environment = process.env) {
   }
 
   const apiKey = environment.GEMINI_API_KEY?.trim();
+  const secret = environment.SECRET;
+  if (!secret) throw new Error('SECRET is required. Run npm run setup.');
+  const trustProxy = Number(environment.TRUST_PROXY_HOPS || 0);
+  if (!Number.isInteger(trustProxy) || trustProxy < 0) throw new Error('TRUST_PROXY_HOPS must be a nonnegative integer.');
+  const isCloud = Boolean(environment.NODE_ENV === 'production' || environment.RENDER || environment.RAILWAY_ENVIRONMENT || environment.FLY_APP_NAME);
   return {
     apiKey: apiKey && apiKey !== 'your_gemini_api_key_here' ? apiKey : undefined,
-    model: MODEL,
-    secret: environment.SECRET,
+    secret,
+    trustProxy,
     templatePath: environment.DOCUMENT_TEMPLATE || 'back-end/data/sample.template.txt',
     documentPath: environment.DOCUMENT_FILE || 'back-end/.private/team-document.txt',
-    auditPath: 'back-end/.private/audit.jsonl',
-    host: environment.HOST || '127.0.0.1',
+    host: environment.HOST || (isCloud ? '0.0.0.0' : '127.0.0.1'),
     port,
   };
 }

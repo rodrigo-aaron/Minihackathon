@@ -1,4 +1,5 @@
-export class ChatApi {
+// Developed with the help of generative AI.
+export class ApiClient {
   constructor(endpoint = '/api/chat') {
     this.endpoint = endpoint;
   }
@@ -42,7 +43,7 @@ export class ChatApi {
     let data;
     try { data = await response.json(); }
     catch { throw new Error('The verification service returned an invalid response.'); }
-    if (Object.keys(data).length !== 1 || !['Hello', 'Correct', 'Incorrect'].includes(data.verify)) {
+    if (!data || Array.isArray(data) || typeof data !== 'object' || Object.keys(data).length !== 1 || !['Hello', 'Correct', 'Incorrect'].includes(data.verify)) {
       throw new Error('The verification service returned an invalid response.');
     }
     return { data, status: response.status };

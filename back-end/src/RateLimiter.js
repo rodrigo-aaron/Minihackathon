@@ -1,7 +1,8 @@
-export class RateLimitService {
+// Developed with the help of generative AI.
+export class RateLimiter {
   constructor({ windowMs = 60_000, budgets = {}, now = () => Date.now() } = {}) {
     this.windowMs = windowMs;
-    this.budgets = { chat: [20, 120], verify: [30, 240], status: [60, 300], ...budgets };
+    this.budgets = { chat: [120, 600], verify: [300, 1200], status: [300, 1200], ...budgets };
     this.now = now;
     this.windows = new Map();
   }

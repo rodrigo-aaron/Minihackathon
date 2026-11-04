@@ -1,0 +1,34 @@
+Riverside Robotics Workshop
+
+This document describes an example event for testing document questions and answers. Its facts are separate from the chatbot's official reference document.
+
+EVENT DETAILS
+The Riverside Robotics Workshop takes place on December 12, 2026, from 10:00 to 15:00 UTC at Riverside Community Centre, Room 305.
+The workshop coordinator is Elena Torres.
+The maximum number of participants is 18.
+
+REGISTRATION
+Registration closes on December 5, 2026.
+Admission costs $25 per person and includes a robotics kit and lunch.
+Students pay $15 when they present a valid student ID.
+Participants must be at least 16 years old. No programming experience is required.
+
+SCHEDULE
+10:00-10:30: Welcome and safety briefing.
+10:30-12:00: Build a small robot in teams of three.
+12:00-12:45: Lunch break.
+12:45-14:30: Program and test the robot.
+14:30-15:00: Demonstrations and questions.
+
+WHAT TO BRING
+Bring a laptop, its charger, and a reusable water bottle.
+The organizers provide robotics kits, tools, and Wi-Fi access.
+Wear closed-toe shoes. Food and drinks must stay off the work tables.
+
+ACCESSIBILITY AND FOOD
+The venue has step-free access and an elevator.
+Vegetarian lunches are available when requested during registration.
+The document does not specify parking availability or cancellation rules.
+
+CONTACT
+For event questions, contact Elena Torres at robotics@example.com.

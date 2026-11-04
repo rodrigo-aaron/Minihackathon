@@ -1,6 +1,6 @@
 import { extname } from 'node:path';
-import { limits } from '../config.js';
-import { HttpError } from '../errors/HttpError.js';
+import { limits } from './config.js';
+import { HttpError } from './HttpError.js';
 
 const textExtensions = new Set([
   '.txt', '.md', '.csv', '.json', '.js', '.mjs', '.cjs', '.ts', '.jsx', '.tsx',
@@ -15,7 +15,8 @@ const binaryTypes = new Map([
   ['.webp', 'image/webp'],
 ]);
 
-export class AttachmentService {
+// Developed with the help of generative AI.
+export class Attachments {
   prepare(files = []) {
     if (files.length > limits.filesPerMessage) {
       throw new HttpError(400, `Attach at most ${limits.filesPerMessage} files per message.`);

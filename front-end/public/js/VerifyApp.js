@@ -1,4 +1,7 @@
-export class VerifySecretApp {
+import { ApiClient } from './ApiClient.js';
+
+// Developed with the help of generative AI.
+export class VerifyApp {
   constructor({ api, document }) {
     this.api = api;
     this.form = document.querySelector('#verify-form');
@@ -28,3 +31,5 @@ export class VerifySecretApp {
     finally { this.busy = false; this.button.disabled = false; }
   }
 }
+
+new VerifyApp({ api: new ApiClient(), document }).initialize();
