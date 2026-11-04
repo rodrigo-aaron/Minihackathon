@@ -57,11 +57,11 @@ export function createApp({ chat, verifier, policy, rateLimiter, trustProxy = 0 
     storage: multer.memoryStorage(),
     limits: {
       fileSize: limits.fileBytes,
-      files: limits.filesPerMessage,
-      fields: 1,
+      files: limits.filesPerMessage + 1,
+      fields: 2,
       fieldNameSize: 100,
       fieldSize: limits.messageCharacters * 4,
-      parts: limits.filesPerMessage + 1,
+      parts: limits.filesPerMessage + 3,
     },
   });
 
@@ -74,12 +74,19 @@ export function createApp({ chat, verifier, policy, rateLimiter, trustProxy = 0 
         fileBytes: limits.fileBytes,
         requestFileBytes: limits.requestFileBytes,
         messageCharacters: limits.messageCharacters,
+        documentBytes: limits.documentBytes,
       },
     });
   });
-  app.post('/api/chat', limit('chat'), upload.array('files', limits.filesPerMessage),
+  app.post('/api/chat', limit('chat'), upload.fields([
+    { name: 'files', maxCount: limits.filesPerMessage },
+    { name: 'context', maxCount: 1 },
+  ]),
     async (request, response) => {
-      const reply = await chat.answer(request.body?.message, request.files || []);
+      const reply = await chat.answer(request.body?.message, request.files?.files || [], {
+        mode: request.body?.mode ?? 'general',
+        contextFile: request.files?.context?.[0] ?? null,
+      });
       response.json({ reply });
     });
   app.use('/api', (request, response) => response.status(404).json({ error: 'API endpoint not found.' }));
@@ -95,7 +102,7 @@ export function createApp({ chat, verifier, policy, rateLimiter, trustProxy = 0 
     if (error instanceof multer.MulterError) {
       const message = error.code === 'LIMIT_FILE_SIZE'
         ? 'Each attachment must be 5 MB or smaller.'
-        : 'Invalid upload. Send one message and up to 3 files using the files field.';
+        : 'Invalid upload. Send one message, one mode, up to 3 files, and at most one context file.';
       return response.status(error.code === 'LIMIT_FILE_SIZE' ? 413 : 400).json({ error: policy.protect(message) });
     }
     if (error instanceof HttpError) {

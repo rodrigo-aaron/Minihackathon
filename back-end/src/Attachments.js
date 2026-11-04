@@ -27,6 +27,7 @@ export class Attachments {
     }
 
     const parts = [];
+    const texts = [];
     for (const file of files) {
       const name = file.originalname.split(/[\\/]/).pop().slice(0, 200);
       const extension = extname(name).toLowerCase();
@@ -39,6 +40,7 @@ export class Attachments {
 
       if (textExtensions.has(extension)) {
         const content = this.decodeText(file.buffer, name);
+        texts.push(name, content);
         parts.push({ text: `Attached file: ${JSON.stringify(name)}\n\n${content}` });
       } else if (binaryTypes.has(extension)) {
         this.validateSignature(file.buffer, extension, name);
@@ -51,7 +53,7 @@ export class Attachments {
       }
     }
 
-    return { parts };
+    return { parts, texts };
   }
 
   decodeText(buffer, name) {

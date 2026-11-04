@@ -9,7 +9,6 @@
   },
   "scripts": {
     "setup": "node back-end/scripts/setup.js",
-    "document:prepare": "node back-end/scripts/setup.js",
     "check:integrity": "node --env-file-if-exists=.env back-end/scripts/check-integrity.js",
     "start": "node --env-file-if-exists=.env back-end/src/server.js",
     "dev": "node --watch --env-file-if-exists=.env back-end/src/server.js"

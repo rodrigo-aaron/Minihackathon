@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { limits } from './config.js';
 
 export const MARKER = '[REPLACE_WITH_YOUR_TEAM_SECRET]';
@@ -20,15 +19,9 @@ export class ReferenceDocument {
   #text;
   #bytes;
 
-  constructor({ templatePath, documentPath, secret }) {
-    const original = readFileSync(templatePath);
-    const expected = populateDocument(original, secret);
-    const prepared = readFileSync(documentPath);
-    if (!prepared.equals(expected)) {
-      throw new Error('Document integrity failed. Run npm run document:prepare after an intentional change.');
-    }
-    this.#bytes = prepared;
-    this.#text = prepared.toString('utf8');
+  constructor({ original, secret }) {
+    this.#bytes = populateDocument(original, secret);
+    this.#text = this.#bytes.toString('utf8');
   }
 
   documentPart() { return { text: this.#text }; }

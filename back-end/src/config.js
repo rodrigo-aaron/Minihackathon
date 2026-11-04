@@ -27,8 +27,6 @@ export function loadConfig(environment = process.env) {
     apiKey: apiKey && apiKey !== 'your_gemini_api_key_here' ? apiKey : undefined,
     secret,
     trustProxy,
-    templatePath: environment.DOCUMENT_TEMPLATE || 'back-end/data/sample.template.txt',
-    documentPath: environment.DOCUMENT_FILE || 'back-end/.private/team-document.txt',
     host: environment.HOST || (isCloud ? '0.0.0.0' : '127.0.0.1'),
     port,
   };

@@ -10,11 +10,20 @@ export class ChatApp {
     this.message = document.querySelector('#message');
     this.fileInput = document.querySelector('#files');
     this.pendingFiles = document.querySelector('#pending-files');
+    this.hackathonToggle = document.querySelector('#hackathon-toggle');
+    this.contextPanel = document.querySelector('#context-panel');
+    this.contextInput = document.querySelector('#context-file');
+    this.contextStatus = document.querySelector('#context-status');
     this.answer = document.querySelector('#answer');
     this.emptyAnswer = document.querySelector('#empty-answer');
     this.status = document.querySelector('#status');
     this.error = document.querySelector('#error');
     this.files = [];
+    this.contextMode = false;
+    this.contextFile = null;
+    this.hackathonToggle.checked = false;
+    this.contextPanel.hidden = true;
+    this.contextInput.value = '';
     this.busy = true;
     this.configured = false;
     this.limits = null;
@@ -26,6 +35,8 @@ export class ChatApp {
       void this.send();
     });
     this.fileInput.addEventListener('change', () => this.selectFiles());
+    this.hackathonToggle.addEventListener('change', () => this.setHackathonMode());
+    this.contextInput.addEventListener('change', () => this.selectContextFile());
 
     try {
       const data = await this.api.load();
@@ -42,6 +53,33 @@ export class ChatApp {
       this.setBusy(false, this.configured);
     }
     if (this.configured) this.focusMessage();
+  }
+
+  setHackathonMode() {
+    if (this.busy) return;
+    this.contextMode = this.hackathonToggle.checked;
+    this.contextPanel.hidden = !this.contextMode;
+    if (!this.contextMode) {
+      this.contextFile = null;
+      this.contextInput.value = '';
+      this.contextStatus.textContent = 'Upload the hackathon file to start.';
+    }
+    this.showError();
+    this.showReadyStatus();
+  }
+
+  selectContextFile() {
+    const file = this.contextInput.files[0];
+    this.contextInput.value = '';
+    if (!file) return;
+    this.showError();
+    if (!/\.(txt|md)$/i.test(file.name) || !file.size || file.size > this.limits.documentBytes) {
+      this.showError('The standard file must be a nonempty UTF-8 .txt or .md file, at most 128 KB.');
+      return;
+    }
+    this.contextFile = file;
+    this.contextStatus.textContent = `${file.name} selected. Included with every question while Hackathon file is enabled.`;
+    this.showReadyStatus();
   }
 
   selectFiles() {
@@ -69,7 +107,11 @@ export class ChatApp {
     if (this.busy || !this.configured) return;
     const message = this.message.value.trim();
     this.showError();
-    if (!message && !this.files.length) {
+    if (this.contextMode && !this.contextFile) {
+      this.showError('Upload the hackathon file before sending a question.');
+      return;
+    }
+    if (!message && !this.files.length && !this.contextFile) {
       this.showError('Enter a message or attach a file.');
       return;
     }
@@ -77,7 +119,10 @@ export class ChatApp {
     this.setBusy(true);
     this.showStatus('Gemini is reading your message and attachments...');
     try {
-      const data = await this.api.send(message, this.files);
+      const data = await this.api.send(message, this.files, {
+        mode: this.contextMode ? 'context' : 'general',
+        contextFile: this.contextFile,
+      });
       this.renderAnswer(data.reply);
       this.message.value = '';
       this.renderFiles();
@@ -97,9 +142,14 @@ export class ChatApp {
       this.showStatus('Add GEMINI_API_KEY to the server .env file, restart the server, and reload this page.');
       return;
     }
+    if (this.contextMode) {
+      this.showStatus(this.contextFile ? `Ready — Hackathon file: ${this.contextFile.name}.`
+        : 'Hackathon file enabled — Upload the standard file before asking a question.');
+      return;
+    }
     const names = this.files.map((file) => file.name).join(', ');
     this.showStatus(names ? `Ready — Selected attachments: ${names}. Included with each question until removed.`
-      : 'Ready — Chat or ask about the official reference document.');
+      : 'Ready — Ask a question or attach a document.');
   }
 
   setBusy(busy, configured = true) {
