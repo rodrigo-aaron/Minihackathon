@@ -7,6 +7,7 @@ export class ChatApp {
     this.document = document;
     this.form = document.querySelector('#chat-form');
     this.controls = document.querySelector('#chat-controls');
+    this.contextControls = document.querySelector('#context-controls');
     this.message = document.querySelector('#message');
     this.fileInput = document.querySelector('#files');
     this.pendingFiles = document.querySelector('#pending-files');
@@ -16,6 +17,10 @@ export class ChatApp {
     this.contextStatus = document.querySelector('#context-status');
     this.answer = document.querySelector('#answer');
     this.emptyAnswer = document.querySelector('#empty-answer');
+    this.exchange = document.querySelector('#exchange');
+    this.latestQuestion = document.querySelector('#latest-question');
+    this.conversation = document.querySelector('#conversation');
+    this.newChatButton = document.querySelector('#new-chat');
     this.status = document.querySelector('#status');
     this.error = document.querySelector('#error');
     this.files = [];
@@ -37,6 +42,13 @@ export class ChatApp {
     this.fileInput.addEventListener('change', () => this.selectFiles());
     this.hackathonToggle.addEventListener('change', () => this.setHackathonMode());
     this.contextInput.addEventListener('change', () => this.selectContextFile());
+    this.newChatButton.addEventListener('click', () => this.resetChat());
+    this.message.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        void this.send();
+      }
+    });
 
     try {
       const data = await this.api.load();
@@ -53,6 +65,19 @@ export class ChatApp {
       this.setBusy(false, this.configured);
     }
     if (this.configured) this.focusMessage();
+  }
+
+  resetChat() {
+    if (this.busy) return;
+    this.files = [];
+    this.fileInput.value = '';
+    this.message.value = '';
+    this.latestQuestion.textContent = '';
+    this.hackathonToggle.checked = false;
+    this.setHackathonMode();
+    this.renderAnswer('');
+    this.renderFiles();
+    this.focusMessage();
   }
 
   setHackathonMode() {
@@ -78,7 +103,7 @@ export class ChatApp {
       return;
     }
     this.contextFile = file;
-    this.contextStatus.textContent = `${file.name} selected. Included with every question while Hackathon file is enabled.`;
+    this.contextStatus.textContent = `${file.name} · Ready for questions.`;
     this.showReadyStatus();
   }
 
@@ -116,8 +141,10 @@ export class ChatApp {
       return;
     }
     this.busy = true;
+    this.latestQuestion.textContent = message || 'Summarize the public facts in my document.';
+    this.renderAnswer('');
     this.setBusy(true);
-    this.showStatus('Gemini is reading your message and attachments...');
+    this.showStatus('Working on your answer…');
     try {
       const data = await this.api.send(message, this.files, {
         mode: this.contextMode ? 'context' : 'general',
@@ -129,6 +156,7 @@ export class ChatApp {
     } catch (error) {
       // Keep the message and pending attachments available for a retry.
       this.showError(error.message);
+      this.renderAnswer('No reply yet. Your message is ready to try again.');
     } finally {
       this.busy = false;
       this.setBusy(false, this.configured);
@@ -143,17 +171,18 @@ export class ChatApp {
       return;
     }
     if (this.contextMode) {
-      this.showStatus(this.contextFile ? `Ready — Hackathon file: ${this.contextFile.name}.`
-        : 'Hackathon file enabled — Upload the standard file before asking a question.');
+      this.showStatus(this.contextFile ? `Hackathon file active · ${this.contextFile.name}`
+        : 'Upload the hackathon file to continue.');
       return;
     }
-    const names = this.files.map((file) => file.name).join(', ');
-    this.showStatus(names ? `Ready — Selected attachments: ${names}. Included with each question until removed.`
-      : 'Ready — Ask a question or attach a document.');
+    this.showStatus(this.files.length ? `${this.files.length} file${this.files.length === 1 ? '' : 's'} attached · Included with each question`
+      : 'Ready when you are');
   }
 
   setBusy(busy, configured = true) {
     this.controls.disabled = busy || !configured;
+    this.contextControls.disabled = busy || !configured;
+    this.newChatButton.disabled = busy;
     this.answer.setAttribute('aria-busy', String(busy));
     this.renderFiles();
   }
@@ -172,7 +201,10 @@ export class ChatApp {
       if (index > 0) this.answer.append(this.document.createElement('br'));
       this.answer.append(this.document.createTextNode(line));
     }
-    this.emptyAnswer.hidden = Boolean(text);
+    const hasExchange = Boolean(text || this.latestQuestion.textContent);
+    this.emptyAnswer.hidden = hasExchange;
+    this.exchange.hidden = !hasExchange;
+    if (hasExchange) this.conversation.scrollTop = this.conversation.scrollHeight;
   }
 
   renderFiles() {
@@ -181,7 +213,7 @@ export class ChatApp {
       const item = this.document.createElement('li');
       const remove = this.document.createElement('button');
       remove.type = 'button';
-      remove.textContent = 'Remove';
+      remove.textContent = '×';
       remove.setAttribute('aria-label', `Remove ${file.name}`);
       remove.disabled = this.busy;
       remove.addEventListener('click', () => {
