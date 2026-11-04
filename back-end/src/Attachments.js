@@ -1,6 +1,5 @@
 import { extname } from 'node:path';
 import { limits } from './config.js';
-import { HttpError } from './HttpError.js';
 
 const textExtensions = new Set([
   '.txt', '.md', '.csv', '.json', '.js', '.mjs', '.cjs', '.ts', '.jsx', '.tsx',
@@ -19,11 +18,11 @@ const binaryTypes = new Map([
 export class Attachments {
   prepare(files = []) {
     if (files.length > limits.filesPerMessage) {
-      throw new HttpError(400, `Attach at most ${limits.filesPerMessage} files per message.`);
+      throw Object.assign(new Error(`Attach at most ${limits.filesPerMessage} files per message.`), { status: 400, expose: true });
     }
     const totalBytes = files.reduce((sum, file) => sum + file.buffer.length, 0);
     if (totalBytes > limits.requestFileBytes) {
-      throw new HttpError(413, 'Attachments can total at most 10 MB per request.');
+      throw Object.assign(new Error('Attachments can total at most 10 MB per request.'), { status: 413, expose: true });
     }
 
     const parts = [];
@@ -32,10 +31,10 @@ export class Attachments {
       const name = file.originalname.split(/[\\/]/).pop().slice(0, 200);
       const extension = extname(name).toLowerCase();
       if (file.buffer.length === 0) {
-        throw new HttpError(400, `The file "${name}" is empty.`);
+        throw Object.assign(new Error(`The file "${name}" is empty.`), { status: 400, expose: true });
       }
       if (file.buffer.length > limits.fileBytes) {
-        throw new HttpError(413, 'Each attachment must be 5 MB or smaller.');
+        throw Object.assign(new Error('Each attachment must be 5 MB or smaller.'), { status: 413, expose: true });
       }
 
       if (textExtensions.has(extension)) {
@@ -49,7 +48,7 @@ export class Attachments {
           { inlineData: { mimeType: binaryTypes.get(extension), data: file.buffer.toString('base64') } },
         );
       } else {
-        throw new HttpError(415, `Unsupported file "${name}". Use a PDF, PNG, JPEG, WebP, or supported text/code file.`);
+        throw Object.assign(new Error(`Unsupported file "${name}". Use a PDF, PNG, JPEG, WebP, or supported text/code file.`), { status: 415, expose: true });
       }
     }
 
@@ -62,7 +61,7 @@ export class Attachments {
       if (text.includes('\0')) throw new Error('Binary content');
       return text;
     } catch {
-      throw new HttpError(415, `The file "${name}" must contain UTF-8 text.`);
+      throw Object.assign(new Error(`The file "${name}" must contain UTF-8 text.`), { status: 415, expose: true });
     }
   }
 
@@ -84,6 +83,6 @@ export class Attachments {
           && buffer.subarray(8, 12).toString('ascii') === 'WEBP';
         break;
     }
-    if (!valid) throw new HttpError(415, `The contents of "${name}" do not match its file type.`);
+    if (!valid) throw Object.assign(new Error(`The contents of "${name}" do not match its file type.`), { status: 415, expose: true });
   }
 }

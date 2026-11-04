@@ -2,7 +2,6 @@ import express from 'express';
 import multer from 'multer';
 import { fileURLToPath } from 'node:url';
 import { limits } from './config.js';
-import { HttpError } from './HttpError.js';
 
 export function createApp({ chat, verifier, policy, rateLimiter, trustProxy = 0 }) {
   const app = express();
@@ -16,7 +15,7 @@ export function createApp({ chat, verifier, policy, rateLimiter, trustProxy = 0 
       if (result.allowed) return next();
       response.set('Retry-After', String(result.retryAfter));
       if (kind === 'verify') return response.status(429).json({ verify: 'Incorrect' });
-      next(new HttpError(429, 'Too many requests. Please try again later.'));
+      next(Object.assign(new Error('Too many requests. Please try again later.'), { status: 429, expose: true }));
     };
   }
 
@@ -37,7 +36,7 @@ export function createApp({ chat, verifier, policy, rateLimiter, trustProxy = 0 
       try { originHost = new URL(origin).host; } catch { originHost = ''; }
       if (!originHost || originHost !== request.get('host')) {
         if (request.path === '/verify') return response.status(403).json({ verify: 'Incorrect' });
-        return next(new HttpError(403, 'Cross-origin requests are not allowed.'));
+        return next(Object.assign(new Error('Cross-origin requests are not allowed.'), { status: 403, expose: true }));
       }
     }
     next();
@@ -105,7 +104,8 @@ export function createApp({ chat, verifier, policy, rateLimiter, trustProxy = 0 
         : 'Invalid upload. Send one message, one mode, up to 3 files, and at most one context file.';
       return response.status(error.code === 'LIMIT_FILE_SIZE' ? 413 : 400).json({ error: policy.protect(message) });
     }
-    if (error instanceof HttpError) {
+    // Only intentionally public errors may expose their messages.
+    if (error.expose === true && Number.isInteger(error.status) && error.status >= 400 && error.status <= 599) {
       return response.status(error.status).json({ error: policy.protect(error.message) });
     }
     if (/Unexpected end of form|Boundary not found|Malformed part header/.test(error.message)) {
