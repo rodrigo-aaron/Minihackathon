@@ -25,11 +25,9 @@ export class ApiClient {
     return this.request();
   }
 
-  send(message, files, { mode = 'general', contextFile = null } = {}) {
+  send(message, files) {
     const body = new FormData();
     body.append('message', message);
-    body.append('mode', mode);
-    if (contextFile) body.append('context', contextFile);
     for (const file of files) body.append('files', file);
     return this.request({ method: 'POST', body });
   }

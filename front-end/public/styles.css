@@ -17,15 +17,6 @@ button:disabled, fieldset:disabled button { opacity: .5; cursor: not-allowed; }
 .plain-button { padding: 4px 0; border: 0; color: #666; background: transparent; font-size: 13px; }
 .plain-button:hover { color: #222; background: transparent; text-decoration: underline; }
 fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
-.context-controls { margin-top: 28px; }
-.toggle-label { display: inline-flex; align-items: center; gap: 9px; font-size: 14px; cursor: pointer; }
-.switch { appearance: none; flex-shrink: 0; width: 30px; height: 18px; margin: 0; border-radius: 12px; background: #c5c5c5; cursor: pointer; }
-.switch::before { content: ''; display: block; width: 14px; height: 14px; margin: 2px; border-radius: 50%; background: #fff; }
-.switch:checked { background: #333; }
-.switch:checked::before { transform: translateX(12px); }
-.switch:disabled { cursor: not-allowed; opacity: .5; }
-#context-panel { margin-top: 14px; }
-#context-panel label { display: block; margin-bottom: 6px; font-size: 13px; }
 input[type="file"] { max-width: 100%; font-size: 13px; }
 .conversation { min-height: 220px; max-height: 50vh; overflow-y: auto; margin: 20px 0; padding: 16px 0 26px; border-top: 1px solid #e7e7e7; border-bottom: 1px solid #e7e7e7; }
 .question { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+
 export const MODEL = 'gemini-3.5-flash-lite';
 
 export const limits = Object.freeze({
@@ -26,6 +28,8 @@ export function loadConfig(environment = process.env) {
   return {
     apiKey: apiKey && apiKey !== 'your_gemini_api_key_here' ? apiKey : undefined,
     secret,
+    documentTemplate: environment.DOCUMENT_TEMPLATE?.trim()
+      || fileURLToPath(new URL('../data/standard.template.txt', import.meta.url)),
     trustProxy,
     host: environment.HOST || (isCloud ? '0.0.0.0' : '127.0.0.1'),
     port,

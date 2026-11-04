@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
 import { loadConfig } from '../src/config.js';
 import { SecretVerifier } from '../src/SecretVerifier.js';
+import { ReferenceDocument } from '../src/ReferenceDocument.js';
 
 const envPath = resolve('.env');
 const defaultEnvironment = [
@@ -27,4 +28,5 @@ process.loadEnvFile(envPath);
 const config = loadConfig();
 new SecretVerifier(config.secret);
 
-console.log('Private configuration prepared. Start the app and select a standard file through Hackathon file mode when needed.');
+new ReferenceDocument({ original: readFileSync(config.documentTemplate), secret: config.secret });
+console.log('Private configuration prepared; standard file validated.');

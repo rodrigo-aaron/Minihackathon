@@ -15,19 +15,7 @@
         <button id="new-chat" class="plain-button" type="button">Clear chat</button>
       </header>
 
-      <fieldset id="context-controls" class="context-controls" disabled>
-        <legend class="sr-only">Hackathon file settings</legend>
-        <label class="toggle-label">
-          <input id="hackathon-toggle" class="switch" type="checkbox" role="switch" aria-controls="context-panel">
-          Hackathon file
-        </label>
-        <div id="context-panel" hidden>
-          <label for="context-file">Upload the standard file</label>
-          <input id="context-file" type="file" accept=".txt,.md" aria-describedby="context-help context-status">
-          <p id="context-help" class="hint">UTF-8 .txt or .md, up to 128 KB. Cleared when you refresh or turn the toggle off.</p>
-          <p id="context-status" class="hint" role="status">Upload the hackathon file to start.</p>
-        </div>
-      </fieldset>
+      <p class="hint">Ask questions about the standard file.</p>
 
       <section id="conversation" class="conversation" aria-label="Latest exchange">
         <p id="empty-answer" class="hint">Ask a question to begin.</p>
